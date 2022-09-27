@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const cryptoJS = require('crypto-js')
+const mailgun=require('mailgun-js')({apiKey:process.env.MAILGUN_KEY,domain:process.env.MAILGUN_DOMIN})
 
 // Jwt token verification
 const verifyToken = async (req, res, next) => {
@@ -30,14 +30,27 @@ const verifyToken = async (req, res, next) => {
 };
 
 // Send email funcation
-const SendgridEmail = async (msgOption,callback) => {
-    sgMail.send(msgOption,(err,info)=>{
+const mailgunEmail = async (msgOption,callback) => {
+    await mailgun.messages().send(msgOption,(err,info)=>{
       if (err) {
-        callback({ 'res': '500', 'msg': err.message });
+        console.log(err);
+        callback({ 'res': '400', 'msg': err.message });
       } else {
         callback({ 'res': '200', 'msg': 'Success.', 'data':info });
       }
     })
 };
 
-module.exports = { verifyToken, SendgridEmail };
+// Password Encrypt
+function encrypt(text) {
+  var encrypt =  cryptoJS.AES.encrypt(text, process.env.PASSWORD_SECRET_KEY).toString();
+  return encrypt;
+}
+
+// Password Decrypt
+function decrypt(text) {
+  var decrypt = cryptoJS.AES.decrypt(text, process.env.PASSWORD_SECRET_KEY);
+  return decrypt.toString(cryptoJS.enc.Utf8)
+}
+
+module.exports = { verifyToken, mailgunEmail, encrypt,decrypt };
