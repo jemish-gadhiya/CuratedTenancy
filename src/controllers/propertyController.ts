@@ -1,12 +1,13 @@
-const router = require("express").Router();
+import express from "express";
+import moment from "moment";
 const propertyModel = require("../models/propertyModel");
 const {verifyToken}=require("./authController");
-const moment=require("moment");
+const router=express.Router();
 
 // Add and update property service
 router.post("/API/V1/addAndUpdateProperty", verifyToken ,async (req, res) => {
   try {
-    let { _id, address, bedrooms, bathrooms,rentOrDeposit,availableDate,propertyImages,description,leaseTerms,squareFeet,amenities,loginUserRole,loginUserId } = req.body;
+    let { _id, address, bedrooms, bathrooms,rentOrDeposit,availableDate,orignalImages,thumbnailImages,description,leaseTerms,squareFeet,amenities,loginUserRole,loginUserId } = req.body;
     if (!address) {
       res.status(400).json({ msg: "Please provide property address." });
     } else if (!bedrooms) {
@@ -36,7 +37,8 @@ router.post("/API/V1/addAndUpdateProperty", verifyToken ,async (req, res) => {
                     bathrooms,
                     rentOrDeposit,
                     availableDate,
-                    propertyImages,
+                    orignalImages,
+                    thumbnailImages,
                     description,
                     leaseTerms,
                     squareFeet,
@@ -44,16 +46,16 @@ router.post("/API/V1/addAndUpdateProperty", verifyToken ,async (req, res) => {
                     updatedBy:loginUserId
                 },{new: true})
                 if (propertyData) {
-                    res.status(200).json({ msg: "Post update successfuly.",data:postData});
+                    res.status(200).json({ msg: "Post update successfuly.",data:propertyData});
                 } else {
-                    res.status(400).json({ msg: "Something went wrong please try again.",data:postData});  
+                    res.status(400).json({ msg: "Something went wrong please try again.",data:propertyData});  
                 }
             }
         }else{
             res.status(400).json({ msg: 'You do not have permission to access.' });
         }
     }
-  } catch (err) {
+  } catch (err:any) {
     res.status(400).json({ msg: err.message });
   }
 });
@@ -62,17 +64,17 @@ router.post("/API/V1/addAndUpdateProperty", verifyToken ,async (req, res) => {
 router.get("/API/V1/allProperty", verifyToken ,async (req, res) => {
     try {
         const {loginUserRole,loginUserId}=req.body;
-        let dynamicWhere={isDeleted:false};
+        let dynamicWhere:any={isDeleted:false};
         if(loginUserRole == "Landlord"){
-            dynamicWhere={userId:loginUserId,isDeleted:false}
+          dynamicWhere={userId:loginUserId,isDeleted:false}
         }
-        const propertyData = await propertyModel.find(dynamicWhere);
+        const propertyData = await propertyModel.find(dynamicWhere).sort({_id:-1})
         if (propertyData) {
             res.status(200).json({ msg: "Post details find successfuly.",data:propertyData});
         } else {
             res.status(400).json({ msg: "Something went wrong please try again.",data:propertyData});  
         }
-    } catch (err) {
+    } catch (err:any) {
       res.status(400).json({ msg: err.message });
     }
 });
@@ -86,7 +88,7 @@ router.get("/API/V1/:_id/property", verifyToken ,async (req, res) => {
         } else {
             res.status(400).json({ msg: "Something went wrong please try again.",data:propertyData});  
         }
-    } catch (err) {
+    } catch (err:any) {
       res.status(400).json({ msg: err.message });
     }
 });
@@ -104,7 +106,7 @@ router.put("/API/V1/deleteProperty", verifyToken ,async (req, res) => {
         } else {
             res.status(400).json({ msg: "Something went wrong please try again.",data:propertyData});  
         }
-    } catch (err) {
+    } catch (err:any) {
       res.status(400).json({ msg: err.message });
     }
 });

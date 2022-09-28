@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,14 +20,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    termsAndCondition: [
-      {
-        legalTerms: Boolean,
-      },
-      {
-        legalLandlord: Boolean,
-      },
-    ],
+    legalTerms: { type: Boolean, default: false },
+    legalLandlord: { type: Boolean, default: false },
   },
   { collection: "users", timestamps: true }
 );

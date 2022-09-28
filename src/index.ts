@@ -1,7 +1,8 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
+const cors=require("cors");
 const app = express();
-require("dotenv").config();
 const db=require('./config/dbconfig');
 
 // Database connection
@@ -13,7 +14,6 @@ app.use(cors());
 
 // Import Controller
 app.use('/',require('./controllers/usersController'));
-app.use('/',require('./controllers/postController'));
 app.use('/',require('./controllers/propertyController'));
 
 const port = process.env.PORT || 8080;

@@ -1,13 +1,15 @@
-const router = require("express").Router();
+import express from "express";
+import moment from "moment";
 const userModel = require("../models/usersModel");
 const jwt = require("jsonwebtoken");
 const {verifyToken,mailgunEmail,encrypt,decrypt}=require("./authController");
+const router=express.Router();
 
 // Server Is Working Service
 router.get("/", (req, res) => {
   try {
     res.status(200).send(`<b> Backend api server is running. </b>`);
-  } catch (err) {
+  } catch (err:any) {
     res.status(400).json({ msg: err.message });
   }
 });
@@ -41,7 +43,7 @@ router.post("/API/V1/registation", async (req, res) => {
           html: `<b>Please Reply on : ${process.env.FROM_EMAIL}</b><html> <body> <table style="margin: 0; padding: 0; width: 100%; font-size: 100%; line-height: 1.65; border-collapse: collapse; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;"> <tbody> <tr style="margin:0; padding:0; width: 100%; border-collapse: collapse;"> <td style="margin: 0; padding: 10px; border-spacing:0; text-align: left;"> <h2 style="font-size: 28px; margin-bottom: 20px;">OTP Verification</h2> <p style="margin-bottom:0px;">Below is your otp for&nbsp;<strong>Curated Tenancy</strong>.</p></p><p>Hello ${firstName} ${lastName}</p> </td> </tr> <tr> <td style="margin: 0; padding: 10px; border-spacing:0; border-collapse: collapse;"> <p style="margin:0;"><strong>OTP: </strong><span>${optcode}</span></p> &nbsp; <p style="margin:0px;">If you have any issues please call us at (${process.env.PHONE_CODE} ${process.env.PHONE_NUMBER})</p> </td> </tr> </tbody> </table> </body></html>`,
           // text: "That was easy!",
         };
-        mailgunEmail(mailOptions, async (data)=> {
+        mailgunEmail(mailOptions, async (data:any)=> {
           if (data.res == 200) {
             req.body.password = encrypt(password);
             req.body.confirmationCode=optcode
@@ -53,7 +55,7 @@ router.post("/API/V1/registation", async (req, res) => {
         })
       }
     }
-  } catch (err) {
+  } catch (err:any) {
     res.status(400).json({ msg: err.message });
   }
 });
@@ -87,7 +89,7 @@ router.post("/API/V1/login", async (req, res) => {
         res.status(200).json({ msg: "Login successfully.", data: token });
       }
     }
-  } catch (err) {
+  } catch (err:any) {
     res.status(400).json({ msg: err.message });
   }
 });
@@ -103,17 +105,19 @@ router.post('/API/V1/otpCreate',async(req,res)=>{
           if (!user) {
             res.status(400).json({ msg: "Please provide register email address." });
           } else {
-            let optcode=Math.floor((Math.random() * 900000)+100000);
+            let otpcode=Math.floor((Math.random() * 900000)+100000);
             const mailOptions = {
               from: `Curated Tenancy<${process.env.FROM_EMAIL}>`,
               to: user.email,
               subject: "OTP: For Email Verification",
-              html: `<b>Please Reply on : ${process.env.FROM_EMAIL}</b><html> <body> <table style="margin: 0; padding: 0; width: 100%; font-size: 100%; line-height: 1.65; border-collapse: collapse; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;"> <tbody> <tr style="margin:0; padding:0; width: 100%; border-collapse: collapse;"> <td style="margin: 0; padding: 10px; border-spacing:0; text-align: left;"> <h2 style="font-size: 28px; margin-bottom: 20px;">OTP Verification</h2> <p style="margin-bottom:0px;">Below is your otp for&nbsp;<strong>Curated Tenancy</strong>.</p></p><p>Hello ${user.firstName} ${user.lastName}</p> </td> </tr> <tr> <td style="margin: 0; padding: 10px; border-spacing:0; border-collapse: collapse;"> <p style="margin:0;"><strong>OTP: </strong><span>${optcode}</span></p> &nbsp; <p style="margin:0px;">If you have any issues please call us at (${process.env.PHONE_CODE} ${process.env.PHONE_NUMBER})</p> </td> </tr> </tbody> </table> </body></html>`,
+              // html: `<b>Please Reply on : ${process.env.FROM_EMAIL}</b><html> <body> <table style="margin: 0; padding: 0; width: 100%; font-size: 100%; line-height: 1.65; border-collapse: collapse; font-family: 'Avenir Next', 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;"> <tbody> <tr style="margin:0; padding:0; width: 100%; border-collapse: collapse;"> <td style="margin: 0; padding: 10px; border-spacing:0; text-align: left;"> <h2 style="font-size: 28px; margin-bottom: 20px;">OTP Verification</h2> <p style="margin-bottom:0px;">Below is your otp for&nbsp;<strong>Curated Tenancy</strong>.</p></p><p>Hello ${user.firstName} ${user.lastName}</p> </td> </tr> <tr> <td style="margin: 0; padding: 10px; border-spacing:0; border-collapse: collapse;"> <p style="margin:0;"><strong>OTP: </strong><span>${otpcode}</span></p> &nbsp; <p style="margin:0px;">If you have any issues please call us at (${process.env.PHONE_CODE} ${process.env.PHONE_NUMBER})</p> </td> </tr> </tbody> </table> </body></html>`,
+              template: "accountverificationemail",
+              'h:X-Mailgun-Variables': `{"fromEmail": "${process.env.FROM_EMAIL}","firstName":"${user.firstName}","lastName":"${user.lastName}","otpcode":"${otpcode}}"`
             };
-            mailgunEmail(mailOptions, async (data)=> {
+            mailgunEmail(mailOptions, async (data:any)=> {
               if (data.res == 200) {
                   await userModel.findByIdAndUpdate({_id:user._id},{
-                    confirmationCode:optcode
+                    confirmationCode:otpcode
                   })
                   res.status(200).json({ msg: 'Code send successfully. Please check your email account.' });
               } else {
@@ -122,7 +126,7 @@ router.post('/API/V1/otpCreate',async(req,res)=>{
             })
         }
       }
-  } catch (err) {
+  } catch (err:any) {
     res.status(400).json({ msg: err.message });
   }
 })
@@ -147,7 +151,7 @@ router.put('/API/V1/otpVerify',async(req,res)=>{
         res.status(400).json({ msg: 'Please provide vaild confirmation code.' });
       }
     }
-  } catch (err) {
+  } catch (err:any) {
     res.status(400).json({ msg: err.message });
   }
 })
